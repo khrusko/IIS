@@ -1,7 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing.Text;
+using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Windows.Forms;
 
 
@@ -14,93 +18,132 @@ namespace I6
 
 		public MainForm()
 		{
-			
+
 			InitializeComponent();
-			this.Width= 900;
-			this.Height = 500;
+			this.Text = "IIS-khrusko";
+			this.Width = 900;
+			this.Height = 485;
 
 			_client = new HttpClient();
 
-			for(int i = 1; i <= 6; i++)
+			for (int i = 1; i <= 6; i++)
 			{
+				int buttonSpacing = 74;
 				Button button = new Button();
 				button.Name = "ButtonI" + i;
 				button.Width = buttonSize;
-				button.Height = 50;
+				button.Height = 75;
 				button.Left = 0;
-
+				button.Top = buttonSpacing * (i - 1);
 				button.Font = new System.Drawing.Font("Arial", 10);
 
 				switch (i)
 				{
 					case 1:
-						button.Top = 0;
 						button.Text = "I1 - Create Country XSD";
 						button.Click += ButtonI1_Click;
 						break;
 					case 2:
-						button.Top = 50;
 						button.Text = "I2 - Create Country RNG";
 						button.Click += ButtonI2_Click;
 						break;
 					case 3:
-						button.Top = 100;
 						button.Text = "I3 - Search countries";
 						button.Click += ButtonI3_Click;
 						break;
 					case 4:
-						button.Top = 150;
 						button.Text = "I4 - Validation with JAXB and XSD";
 						button.Click += ButtonI4_Click;
 						break;
 					case 5:
-						button.Top = 200;
 						button.Text = "I5 - Get current temperature by city";
 						button.Click += ButtonI5_Click;
 						break;
 					case 6:
-						button.Top = 250;
 						button.Text = "I6 - Get Countries";
 						button.Click += ButtonI6_Click;
 						break;
 
 				}
-
 				this.Controls.Add(button); // Add the button to the form's controls
-
 			}
-
 		}
 
 		private void ButtonI1_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI1DataAsync();
 		}
 		private void ButtonI2_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI2DataAsync();
 		}
 		private void ButtonI3_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI3DataAsync();
 		}
 		private void ButtonI4_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI4DataAsync();
 		}
 		private void ButtonI5_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI5DataAsync();
 		}
 		private void ButtonI6_Click(object sender, EventArgs e)
 		{
+			ClearContent();
 			GetI6DataAsync();
 		}
 
 		private async void GetI1DataAsync()
 		{
-			
+			//Pronalazak XSD i XML datoteke
+			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
+			string solutionDirectoryPath = Directory.GetParent(path).Parent.Parent.Parent.FullName; // Navigates up to the solution directory
+			string fixedFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml"); // Combines the solution directory path with the filename
+			string newFilePath = Path.GetTempFileName(); // Generate a unique temporary file path
+
+			//Copy the original file into a temp one
+			File.Copy(fixedFilePath, newFilePath, true);
+
+			// Open the editor for the temp file
+			Process.Start("notepad++.exe", newFilePath)?.WaitForExit();
+
+			// Read the contents of the fixed file
+			string fileContent = File.ReadAllText(newFilePath);
+
+			// Save the modified content to the new file
+			File.WriteAllText(newFilePath, fileContent);
+
+			using (var client = new HttpClient())
+			{
+				var formContent = new MultipartFormDataContent();
+
+				var fileContentTemp = new ByteArrayContent(File.ReadAllBytes(newFilePath));
+				fileContentTemp.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+
+				// Add the new file to the POST request
+				formContent.Add(fileContentTemp, "file", Path.GetFileName(newFilePath));
+
+				// Send the POST request to the server
+				var response = await client.PostAsync("http://localhost:5000/api/Country/SaveWithXSD", formContent);
+
+				if (response.IsSuccessStatusCode)
+				{
+					MessageBox.Show("File successfully validated and uploaded.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else
+				{
+					MessageBox.Show("There was an error validating and uploading your file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
 		}
+
 		private async void GetI2DataAsync()
 		{
 
@@ -138,7 +181,6 @@ namespace I6
 				// Deserialize JSON response to list of Country objects
 				List<CountryRapid> countries = JsonConvert.DeserializeObject<List<CountryRapid>>(body);
 
-				// Create DataGridView and add it to the form
 				DataGridView dataGridView = new DataGridView
 				{
 					DataSource = countries,
@@ -150,6 +192,18 @@ namespace I6
 				};
 
 				this.Controls.Add(dataGridView);
+			}
+		}
+
+		private void ClearContent()
+		{
+			foreach (Control control in this.Controls)
+			{
+				if (control is Button)
+				{
+					continue;
+				}
+				control.Dispose();
 			}
 		}
 	}

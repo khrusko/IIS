@@ -1,53 +1,53 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <countries>
-    <country id="1">
-        <Name>Hrvatska</Name>
-        <Capital>Zagreb</Capital>
-        <Population>4000000</Population>
-    </country>
-    <country id="2">
-        <Name>Srbija</Name>
-        <Capital>Beograd</Capital>
-        <Population>7000000</Population>
-    </country>
-    <country id="3">
-        <Name>Slovenija</Name>
-        <Capital>Ljubljana</Capital>
-        <Population>1500000</Population>
-    </country>
-    <country id="4">
-        <Name>Italija</Name>
-        <Capital>Rim</Capital>
-        <Population>60000000</Population>
-    </country>
-    <country id="5">
-        <Name>Njemačka</Name>
-        <Capital>Berlin</Capital>
-        <Population>83000000</Population>
-    </country>
-    <country id="6">
-        <Name>Francuska</Name>
-        <Capital>Pariz</Capital>
-        <Population>67000000</Population>
-    </country>
-    <country id="7">
-        <Name>Španjolska</Name>
-        <Capital>Madrid</Capital>
-        <Population>47000000</Population>
-    </country>
-    <country id="8">
-        <Name>Portugal</Name>
-        <Capital>Lisabon</Capital>
-        <Population>10000000</Population>
-    </country>
-    <country id="9">
-        <Name>Grčka</Name>
-        <Capital>Atena</Capital>
-        <Population>10500000</Population>
-    </country>
-    <country id="10">
-        <Name>Turska</Name>
-        <Capital>Ankara</Capital>
-        <Population>82000000</Population>
-    </country>
+  <country id="1">
+    <Name>Australija</Name>
+    <Capital>Melbourne</Capital>
+    <Population>40000000</Population>
+  </country>
+  <country id="2">
+    <Name>Srbija</Name>
+    <Capital>Beograd</Capital>
+    <Population>7000000</Population>
+  </country>
+  <country id="3">
+    <Name>Slovenija</Name>
+    <Capital>Ljubljana</Capital>
+    <Population>1500000</Population>
+  </country>
+  <country id="4">
+    <Name>Italija</Name>
+    <Capital>Rim</Capital>
+    <Population>60000000</Population>
+  </country>
+  <country id="5">
+    <Name>Njemačka</Name>
+    <Capital>Berlin</Capital>
+    <Population>83000000</Population>
+  </country>
+  <country id="6">
+    <Name>Francuska</Name>
+    <Capital>Pariz</Capital>
+    <Population>67000000</Population>
+  </country>
+  <country id="7">
+    <Name>Španjolska</Name>
+    <Capital>Madrid</Capital>
+    <Population>47000000</Population>
+  </country>
+  <country id="8">
+    <Name>Portugal</Name>
+    <Capital>Lisabon</Capital>
+    <Population>10000000</Population>
+  </country>
+  <country id="9">
+    <Name>Grčka</Name>
+    <Capital>Atena</Capital>
+    <Population>10500000</Population>
+  </country>
+  <country id="10">
+    <Name>Turska</Name>
+    <Capital>Ankara</Capital>
+    <Population>82000000</Population>
+  </country>
 </countries>

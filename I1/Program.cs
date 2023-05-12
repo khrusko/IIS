@@ -1,15 +1,45 @@
-var builder = WebApplication.CreateBuilder(args);
+using I1.Controllers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using System.IO;
 
-// Add services to the container.
+namespace I1
+{
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var host = CreateHostBuilder(args).Build();
 
-builder.Services.AddControllers();
+			// Run the application
+			host.Run();
+		}
 
-var app = builder.Build();
+		public static IHostBuilder CreateHostBuilder(string[] args) =>
+			Host.CreateDefaultBuilder(args)
+				.ConfigureWebHostDefaults(webBuilder =>
+				{
+					webBuilder.Configure(app =>
+					{
+						app.UseRouting();
 
-// Configure the HTTP request pipeline.
+						app.UseEndpoints(endpoints =>
+						{
+							endpoints.MapPost("/api/Country/SaveWithXSD", async context =>
+							{
+								var file = context.Request.Form.Files.GetFile("file");
 
-app.UseAuthorization();
+								// Call the ProcessXmlFile method in CountryController
+								var countryController = new CountryController();
+								countryController.ProcessXmlFile(file);
 
-app.MapControllers();
-
-app.Run();
+								// Return the appropriate response
+								context.Response.StatusCode = StatusCodes.Status200OK;
+								await context.Response.WriteAsync("XML file is valid according to the provided XSD schema.");
+							});
+						});
+					});
+				});
+	}
+}

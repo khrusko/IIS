@@ -1,11 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Emit;
 using System.Windows.Forms;
 
 
@@ -135,18 +138,57 @@ namespace I6
 
 				if (response.IsSuccessStatusCode)
 				{
-					MessageBox.Show("File successfully validated and uploaded.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					MessageBox.Show("File successfully validated and uploaded.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
 				}
 				else
 				{
-					MessageBox.Show("There was an error validating and uploading your file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show("There was an error validating and uploading your file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
 				}
 			}
 		}
 
 		private async void GetI2DataAsync()
 		{
+			//Pronalazak XSD i XML datoteke
+			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
+			string solutionDirectoryPath = Directory.GetParent(path).Parent.Parent.Parent.FullName; // Navigates up to the solution directory
+			string fixedFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml"); // Combines the solution directory path with the filename
+			string newFilePath = Path.GetTempFileName(); // Generate a unique temporary file path
 
+			//Copy the original file into a temp one
+			File.Copy(fixedFilePath, newFilePath, true);
+
+			// Open the editor for the temp file
+			Process.Start("notepad++.exe", newFilePath)?.WaitForExit();
+
+			// Read the contents of the fixed file
+			string fileContent = File.ReadAllText(newFilePath);
+
+			// Save the modified content to the new file
+			File.WriteAllText(newFilePath, fileContent);
+
+			using (var client = new HttpClient())
+			{
+				var formContent = new MultipartFormDataContent();
+
+				var fileContentTemp = new ByteArrayContent(File.ReadAllBytes(newFilePath));
+				fileContentTemp.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+
+				// Add the new file to the POST request
+				formContent.Add(fileContentTemp, "file", Path.GetFileName(newFilePath));
+
+				// Send the POST request to the server
+				var response = await client.PostAsync("http://localhost:5000/api/Country/SaveWithRNG", formContent);
+
+				if (response.IsSuccessStatusCode)
+				{
+					MessageBox.Show("File successfully validated and uploaded.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+				}
+				else
+				{
+					MessageBox.Show("There was an error validating and uploading your file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+				}
+			}
 		}
 		private async void GetI3DataAsync()
 		{
@@ -158,8 +200,79 @@ namespace I6
 		}
 		private async void GetI5DataAsync()
 		{
-
+			ClearContent();
+			TextBox tbCityName = new TextBox();
+			tbCityName.Left = 360;
+			tbCityName.Top = 50;
+			tbCityName.Width = 200;
+			tbCityName.Height = 100;
+			tbCityName.Font = new System.Drawing.Font("Arial", 15);
+			Button btnSubmit = new Button();
+			btnSubmit.Name = "SubmitButton";
+			btnSubmit.Text = "Submit";
+			btnSubmit.Left = 600;
+			btnSubmit.Top = 50;
+			btnSubmit.Height = 30;
+			btnSubmit.Width = 100;
+			btnSubmit.Font = new System.Drawing.Font("Arial", 15);
+			this.Controls.Add(tbCityName);
+			this.Controls.Add(btnSubmit);
+			btnSubmit.Click += (sender, e) =>
+			{
+				string cityName = tbCityName.Text; // Capture the current value of tbCityName.Text
+				BtnSubmit_Click(sender, e, cityName);
+			};
 		}
+
+		private async void BtnSubmit_Click(object sender, EventArgs e, string cityName)
+		{
+			//Clear the Label
+			foreach (Control control in this.Controls)
+			{
+				if (control is System.Windows.Forms.Label)
+				{
+					control.Dispose();
+					continue;
+				}	
+			}
+
+			using (HttpClient client = new HttpClient())
+			{
+				HttpResponseMessage response = await client.GetAsync($"http://localhost:5000/api/Country/Temperature/{cityName}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					// Read the response content directly as a string
+					string temperature = await response.Content.ReadAsStringAsync();
+
+					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+					label.Width = 600;
+					label.Top = 200;
+					label.Left = 280;
+					label.Font = new System.Drawing.Font("Arial", 15);
+					label.Text = $"The current temperature in {cityName} is {temperature}° Celsius";
+					label.Name = "temperatureLabel";
+					this.Controls.Add(label);
+				}
+				else
+				{
+					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+					label.Width = 600;
+					label.Top = 200;
+					label.Left = 280;
+					label.Font = new System.Drawing.Font("Arial", 15);
+					label.Text = $"The city {cityName} does not exist. Please enter a valid city!";
+					label.ForeColor = System.Drawing.Color.Red;
+					label.Name = "temperatureLabel";
+					this.Controls.Add(label);
+
+				}
+			}
+		}
+
+
+
+
 		private async void GetI6DataAsync()
 		{
 			var request = new HttpRequestMessage
@@ -197,12 +310,35 @@ namespace I6
 
 		private void ClearContent()
 		{
+
+			Button button1 = this.Controls.OfType<Button>().FirstOrDefault(btn => btn.Name == "SubmitButton");
+            System.Windows.Forms.Label label1 = this.Controls.OfType<System.Windows.Forms.Label>().FirstOrDefault(lbl => lbl.Name == "temperatureLabel");
+
+			if (button1 != null)
+			{
+				this.Controls.Remove(button1);
+				button1.Dispose();
+			}
+
+			if (label1 != null)
+			{
+				this.Controls.Remove(label1);
+				label1.Dispose();
+			}
+
 			foreach (Control control in this.Controls)
 			{
+				//if (control.Name == "SubmitButton")
+				//{
+				//	control.Dispose();
+				//	continue;
+				//}
+
 				if (control is Button)
 				{
 					continue;
 				}
+				
 				control.Dispose();
 			}
 		}

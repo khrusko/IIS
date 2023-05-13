@@ -1,0 +1,25 @@
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" ns="" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+	<rng:start combine="choice">
+	<rng:ref name="countries"/>
+	</rng:start>
+	<rng:define name="countries">
+		<rng:element name="countries">
+			<rng:oneOrMore>
+				<rng:element name="country">
+						<rng:element name="Name">
+						<rng:data type="string"/>
+					</rng:element>
+					<rng:element name="Capital">
+						<rng:data type="string"/>
+					</rng:element>
+					<rng:element name="Population">
+						<rng:data type="integer"/>
+					</rng:element>		
+					<rng:attribute name="id">
+						<rng:data type="integer"/>
+					</rng:attribute> 
+				</rng:element>
+			</rng:oneOrMore>
+	  </rng:element>
+	</rng:define>
+</rng:grammar>

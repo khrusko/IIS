@@ -3,12 +3,14 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.PerformanceData;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -263,11 +265,16 @@ namespace I6
 		private async void GetI4DataAsync()
 		{
 			ClearLabels();
-			//Check if file exists
-			bool exists = false;
-			if (exists)
+			//Pronalazak XSD i XML datoteke
+			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
+			string solutionDirectoryPath = Directory.GetParent(path).Parent.Parent.Parent.FullName;
+			string xsdPath = Path.Combine(solutionDirectoryPath, "countriesXSD.xsd");
+			string countriesSearchList = Path.Combine(solutionDirectoryPath, "countriesSearchList.xml");
+
+			if (xsdPath != null&&countriesSearchList!=null)
 			{
 				//Handle JAXB Validation => validate searchCountriesList.xml by XSD
+				await RunJavaValidation(countriesSearchList, xsdPath);
 			}
 			else
 			{
@@ -276,12 +283,52 @@ namespace I6
 				label.Top = 200;
 				label.Left = 280;
 				label.Font = new System.Drawing.Font("Arial", 15);
-				label.Text = $"The list with all countries does not exist, please run I3 first!";
+				label.Text = $"The list with all the countries or the XSD file does not exist, please run I3 first!";
 				label.ForeColor = System.Drawing.Color.Red;
 				label.Name = "countryLabel";
 				this.Controls.Add(label);
 			}
 		}
+
+		private async Task RunJavaValidation(string xmlPath, string xsdPath)
+		{
+			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
+			string solutionDirectoryPath = Directory.GetParent(path).Parent.Parent.Parent.FullName; // Navigates up to the solution directory
+			string jarPath = Path.Combine(solutionDirectoryPath, "XmlValidator.jar");
+
+			ProcessStartInfo psi = new ProcessStartInfo();
+			psi.FileName = "java"; // java should be in PATH
+			psi.Arguments = $"-jar \"{jarPath}\" \"{xmlPath}\" \"{xsdPath}\"";
+			psi.RedirectStandardOutput = true;
+			psi.RedirectStandardError = true;
+			psi.UseShellExecute = false;
+
+			Process p = Process.Start(psi);
+			string stdout = await p.StandardOutput.ReadToEndAsync();
+			string stderr = await p.StandardError.ReadToEndAsync();
+			p.WaitForExit();
+
+			System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+			label.Width = 600;
+			label.Height = 300;
+			label.Top = 200;
+			label.Left = 280;
+			label.Font = new System.Drawing.Font("Arial", 15);
+			if (stderr =="")
+			{
+				label.Text = $"Output: {stdout}";
+			}
+			else
+			{
+				label.Text = $"Error: {stderr}";
+				label.ForeColor = System.Drawing.Color.Red;
+			}
+			label.Name = "countryLabel";
+			this.Controls.Add(label);
+		}
+
+
+
 		private async void GetI5DataAsync()
 		{
 			ClearContent();

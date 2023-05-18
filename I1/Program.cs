@@ -79,6 +79,20 @@ namespace I1
 								context.Response.StatusCode = StatusCodes.Status200OK;
 								await context.Response.WriteAsync($"{temperature}");
 							});
+
+							endpoints.MapGet("/api/Country/Info/{countryName}", async context =>
+							{
+								// Extract city name from the route
+								var countryName = context.Request.RouteValues["countryName"].ToString();
+
+								// Call the GetCurrentTemperature method in CountryController
+								var countryController = new CountryController();
+								var information = await countryController.Info(countryName);
+
+								// Return the appropriate response
+								context.Response.StatusCode = StatusCodes.Status200OK;
+								await context.Response.WriteAsync($"{information}");
+							});
 						});
 					});
 				});

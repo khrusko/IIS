@@ -15,7 +15,7 @@ namespace I1.Controllers
 	[ApiController]
 	public class CountryController : ControllerBase
 	{
-		
+
 		public bool ProcessXmlFileWithXSD(IFormFile file)
 		{
 			// Spremanje datoteke na privremeno mjesto
@@ -26,8 +26,8 @@ namespace I1.Controllers
 			}
 
 			var solutionDirectoryPath = FindSolutionPath();
-			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml"); // Combines the solution directory path with the filename
-			string xsdFilePath = Path.Combine(solutionDirectoryPath, "countriesXSD.xsd"); // Combines the solution directory path with the filename
+			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml");
+			string xsdFilePath = Path.Combine(solutionDirectoryPath, "countriesXSD.xsd");
 
 			// Učitavanje XSD datoteke
 			XmlSchemaSet schemas = new XmlSchemaSet();
@@ -48,11 +48,11 @@ namespace I1.Controllers
 			if (string.IsNullOrEmpty(msg))
 			{
 				doc.Save(xmlFilePath);
-				return true; // Validation successful
+				return true;
 			}
 			else
 			{
-				return false; // Validation failed
+				return false;
 			}
 		}
 
@@ -66,8 +66,8 @@ namespace I1.Controllers
 			}
 
 			var solutionDirectoryPath = FindSolutionPath();
-			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml"); // Combines the solution directory path with the filename
-			string rngFilePath = Path.Combine(solutionDirectoryPath, "countriesRNG.rng"); // Combines the solution directory path with the filename
+			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml");
+			string rngFilePath = Path.Combine(solutionDirectoryPath, "countriesRNG.rng");
 
 			// Loading the RNG file
 			RelaxngPattern rng;
@@ -86,7 +86,7 @@ namespace I1.Controllers
 			{
 				try
 				{
-					while (xmlReader.Read()) { } // This will throw an exception if the document is invalid
+					while (xmlReader.Read()) { } // Exception if invalid
 				}
 				catch (Exception ex)
 				{
@@ -97,15 +97,13 @@ namespace I1.Controllers
 			if (string.IsNullOrEmpty(msg))
 			{
 				doc.Save(xmlFilePath);
-				return true; // Validation successful
+				return true;
 			}
 			else
 			{
-				return false; // Validation failed
+				return false;
 			}
 		}
-
-
 
 		[HttpPost(Name = "SaveWithXSD")]
 		public IActionResult SaveWithXSD(IFormFile file)
@@ -182,12 +180,40 @@ namespace I1.Controllers
 			}
 		}
 
+		[HttpGet("Info/{countryName}")]
+		public async Task<string> Info(string countryName)
+		{
+			var solutionDirectoryPath = FindSolutionPath();
+			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml");
+			string countriesSearchList = Path.Combine(solutionDirectoryPath, "countriesSearchList.xml");
 
+			//Copy the original xml into the new search list, if the search list already exists it is overwritten
+			System.IO.File.Copy(xmlFilePath, countriesSearchList, true);
 
+			XmlDocument doc = new XmlDocument();
+			await Task.Run(() => doc.Load(countriesSearchList));
+
+			//Xpath usage
+			XmlNode countryNode = doc.SelectSingleNode($"/countries/country[Name='{countryName}']");
+			if (countryNode != null)
+			{
+				string name = countryNode.SelectSingleNode("Name")?.InnerText;
+				string capital = countryNode.SelectSingleNode("Capital")?.InnerText;
+				string population = countryNode.SelectSingleNode("Population")?.InnerText;
+
+				// handle null values
+				name = name ?? "Unknown";
+				capital = capital ?? "Unknown";
+				population = population ?? "Unknown";
+
+				return $"Country: {name} \nCapital: {capital} \nPopulation: {population}";
+			}
+
+			throw new Exception("Country not found.");
+		}
 		public string FindSolutionPath()
 		{
 			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
-			// Navigates up to the solution directory
 			string solutionDirectoryPath = path;
 			for (int i = 0; i < 5; i++)
 			{

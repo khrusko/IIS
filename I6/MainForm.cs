@@ -192,11 +192,95 @@ namespace I6
 		}
 		private async void GetI3DataAsync()
 		{
-
+			ClearContent();
+			TextBox tbCountryName = new TextBox();
+			tbCountryName.Left = 360;
+			tbCountryName.Top = 50;
+			tbCountryName.Width = 200;
+			tbCountryName.Height = 100;
+			tbCountryName.Font = new System.Drawing.Font("Arial", 15);
+			tbCountryName.Text = "Country name";
+			tbCountryName.ForeColor = System.Drawing.Color.LightGray;
+			tbCountryName.Click += (sender, e) =>
+			{
+				tbCountryName.Text = String.Empty;
+				tbCountryName.ForeColor = System.Drawing.Color.Black;
+			};
+			Button btnSubmit = new Button();
+			btnSubmit.Name = "SubmitButton";
+			btnSubmit.Text = "Search";
+			btnSubmit.Left = 600;
+			btnSubmit.Top = 50;
+			btnSubmit.Height = 30;
+			btnSubmit.Width = 100;
+			btnSubmit.Font = new System.Drawing.Font("Arial", 15);
+			this.Controls.Add(tbCountryName);
+			this.Controls.Add(btnSubmit);
+			btnSubmit.Click += (sender, e) =>
+			{
+				string countryName = tbCountryName.Text;
+				BtnSearch_Click(sender, e, countryName);
+			};
 		}
+
+		private async void BtnSearch_Click(object sender, EventArgs e, string countryName)
+		{
+			ClearLabels();
+			using (HttpClient client = new HttpClient())
+			{
+				HttpResponseMessage response = await client.GetAsync($"http://localhost:5000/api/Country/Info/{countryName}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					// Read the response content directly as a string
+					string countryData = await response.Content.ReadAsStringAsync();
+
+					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+					label.Width = 600;
+					label.Height = 300;
+					label.Top = 200;
+					label.Left = 400;
+					label.Font = new System.Drawing.Font("Arial", 15);
+					label.Text = $"-Country information- \n{countryData}";
+					label.Name = "countryLabel";
+					this.Controls.Add(label);
+				}
+				else
+				{
+					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+					label.Width = 600;
+					label.Top = 200;
+					label.Left = 280;
+					label.Font = new System.Drawing.Font("Arial", 15);
+					label.Text = $"The country {countryName} does not exist. Please enter a valid country!";
+					label.ForeColor = System.Drawing.Color.Red;
+					label.Name = "countryLabel";
+					this.Controls.Add(label);
+				}
+			}
+		}
+
 		private async void GetI4DataAsync()
 		{
-
+			ClearLabels();
+			//Check if file exists
+			bool exists = false;
+			if (exists)
+			{
+				//Handle JAXB Validation => validate searchCountriesList.xml by XSD
+			}
+			else
+			{
+				System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+				label.Width = 600;
+				label.Top = 200;
+				label.Left = 280;
+				label.Font = new System.Drawing.Font("Arial", 15);
+				label.Text = $"The list with all countries does not exist, please run I3 first!";
+				label.ForeColor = System.Drawing.Color.Red;
+				label.Name = "countryLabel";
+				this.Controls.Add(label);
+			}
 		}
 		private async void GetI5DataAsync()
 		{
@@ -207,6 +291,13 @@ namespace I6
 			tbCityName.Width = 200;
 			tbCityName.Height = 100;
 			tbCityName.Font = new System.Drawing.Font("Arial", 15);
+			tbCityName.Text = "City name";
+			tbCityName.ForeColor = System.Drawing.Color.LightGray;
+			tbCityName.Click += (sender, e) =>
+			{
+				tbCityName.ForeColor = System.Drawing.Color.Black;
+				tbCityName.Text = String.Empty;
+			};
 			Button btnSubmit = new Button();
 			btnSubmit.Name = "SubmitButton";
 			btnSubmit.Text = "Submit";
@@ -226,15 +317,7 @@ namespace I6
 
 		private async void BtnSubmit_Click(object sender, EventArgs e, string cityName)
 		{
-			//Clear the Label
-			foreach (Control control in this.Controls)
-			{
-				if (control is System.Windows.Forms.Label)
-				{
-					control.Dispose();
-					continue;
-				}	
-			}
+			ClearLabels();
 
 			using (HttpClient client = new HttpClient())
 			{
@@ -308,11 +391,33 @@ namespace I6
 			}
 		}
 
+		private void ClearLabels()
+		{
+			foreach (Control control in this.Controls)
+			{
+				if (control is System.Windows.Forms.Label)
+				{
+					control.Dispose();
+					continue;
+				}
+			}
+		}
+
 		private void ClearContent()
 		{
 
 			Button button1 = this.Controls.OfType<Button>().FirstOrDefault(btn => btn.Name == "SubmitButton");
-            System.Windows.Forms.Label label1 = this.Controls.OfType<System.Windows.Forms.Label>().FirstOrDefault(lbl => lbl.Name == "temperatureLabel");
+			System.Windows.Forms.Label label1 = this.Controls.OfType<System.Windows.Forms.Label>().FirstOrDefault(lbl => lbl.Name == "temperatureLabel");
+
+			//Clear the Label
+			foreach (Control control in this.Controls)
+			{
+				if (control is System.Windows.Forms.Label)
+				{
+					control.Dispose();
+					continue;
+				}
+			}
 
 			if (button1 != null)
 			{
@@ -328,17 +433,10 @@ namespace I6
 
 			foreach (Control control in this.Controls)
 			{
-				//if (control.Name == "SubmitButton")
-				//{
-				//	control.Dispose();
-				//	continue;
-				//}
-
 				if (control is Button)
 				{
 					continue;
 				}
-				
 				control.Dispose();
 			}
 		}

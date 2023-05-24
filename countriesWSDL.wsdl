@@ -1,0 +1,62 @@
+<definitions name="CountryInfoService"
+   targetNamespace="http://localhost:5000/api/Country/Info"
+   xmlns="http://schemas.xmlsoap.org/wsdl/"
+   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+   xmlns:tns="http://localhost:5000/api/Country/Info"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <types>
+      <xsd:schema targetNamespace="http://localhost:5000/api/Country/Info">
+         <xsd:complexType name="CountryInfo">
+            <xsd:sequence>
+               <xsd:element name="Name" type="xsd:string"/>
+               <xsd:element name="Capital" type="xsd:string"/>
+               <xsd:element name="Population" type="xsd:long"/>
+            </xsd:sequence>
+         </xsd:complexType>
+      </xsd:schema>
+   </types>
+
+   <message name="GetCountryInfoInput">
+      <part name="countryName" type="xsd:string"/>
+   </message>
+
+   <message name="GetCountryInfoOutput">
+      <part name="CountryInfo" type="tns:CountryInfo"/>
+   </message>
+
+   <portType name="CountryInfoPortType">
+      <operation name="GetCountryInfo">
+         <input message="tns:GetCountryInfoInput"/>
+         <output message="tns:GetCountryInfoOutput"/>
+      </operation>
+   </portType>
+
+   <binding name="CountryInfoBinding" type="tns:CountryInfoPortType">
+      <soap:binding style="rpc"
+         transport="http://schemas.xmlsoap.org/soap/http"/>
+      <operation name="GetCountryInfo">
+         <soap:operation soapAction="http://localhost:5000/api/Country/Info/GetCountryInfo"/>
+         <input>
+            <soap:body
+               encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+               namespace="urn:examples:countryinfo"
+               use="encoded"/>
+         </input>
+
+         <output>
+            <soap:body
+               encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+               namespace="urn:examples:countryinfo"
+               use="encoded"/>
+         </output>
+      </operation>
+   </binding>
+
+   <service name="CountryInfoService">
+      <documentation>Get information about a country</documentation>
+      <port name="CountryInfoPort" binding="tns:CountryInfoBinding">
+         <soap:address location="http://localhost:5000/api/Country/Info"/>
+      </port>
+   </service>
+</definitions>

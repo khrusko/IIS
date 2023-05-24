@@ -10,9 +10,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Emit;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows.Forms;
-
+using System.Xml;
 
 namespace I6
 {
@@ -230,37 +232,74 @@ namespace I6
 			ClearLabels();
 			using (HttpClient client = new HttpClient())
 			{
-				HttpResponseMessage response = await client.GetAsync($"http://localhost:5000/api/Country/Info/{countryName}");
+				string url = "http://localhost:60225/CountryService.asmx/GetCountryInfo";
+				string requestData = $"countryName={HttpUtility.UrlEncode(countryName)}";
 
-				if (response.IsSuccessStatusCode)
+				try
 				{
-					// Read the response content directly as a string
-					string countryData = await response.Content.ReadAsStringAsync();
+					var content = new StringContent(requestData, Encoding.UTF8, "application/x-www-form-urlencoded");
+					HttpResponseMessage response = await client.PostAsync(url, content);
 
-					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
-					label.Width = 600;
-					label.Height = 300;
-					label.Top = 200;
-					label.Left = 400;
-					label.Font = new System.Drawing.Font("Arial", 15);
-					label.Text = $"-Country information- \n{countryData}";
-					label.Name = "countryLabel";
-					this.Controls.Add(label);
+					if (response.IsSuccessStatusCode)
+					{
+						string responseContent = await response.Content.ReadAsStringAsync();
+
+						// Extract the country information from the response XML
+						XmlDocument xmlDoc = new XmlDocument();
+						xmlDoc.LoadXml(responseContent);
+						string countryData = xmlDoc.InnerText;
+
+						System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+						label.Width = 600;
+						label.Height = 300;
+						label.Top = 200;
+						label.Left = 400;
+						label.Font = new System.Drawing.Font("Arial", 15);
+						label.Text = $"-Country information- \n{countryData}";
+						label.Name = "countryLabel";
+						this.Controls.Add(label);
+					}
+					else
+					{
+						System.Windows.Forms.Label label = new System.Windows.Forms.Label();
+						label.Width = 600;
+						label.Top = 200;
+						label.Left = 280;
+						label.Font = new System.Drawing.Font("Arial", 15);
+						label.Text = $"The country {countryName} does not exist. Please enter a valid country!";
+						label.ForeColor = System.Drawing.Color.Red;
+						label.Name = "countryLabel";
+						this.Controls.Add(label);
+					}
 				}
-				else
+				catch (HttpRequestException ex)
 				{
-					System.Windows.Forms.Label label = new System.Windows.Forms.Label();
-					label.Width = 600;
-					label.Top = 200;
-					label.Left = 280;
-					label.Font = new System.Drawing.Font("Arial", 15);
-					label.Text = $"The country {countryName} does not exist. Please enter a valid country!";
-					label.ForeColor = System.Drawing.Color.Red;
-					label.Name = "countryLabel";
-					this.Controls.Add(label);
+					// Handle the exception, display an error message, or perform any necessary actions
+					Console.WriteLine("An error occurred while sending the request: " + ex.Message);
 				}
 			}
 		}
+
+
+		//private string ExtractCountryInfoFromXml(string xmlData)
+		//{
+		//	XmlDocument doc = new XmlDocument();
+		//	doc.LoadXml(xmlData);
+
+		//	XmlNamespaceManager namespaceManager = new XmlNamespaceManager(doc.NameTable);
+		//	namespaceManager.AddNamespace("ns", "http://localhost:50000/api/Country/Info");
+
+		//	XmlNode countryNode = doc.SelectSingleNode("//ns:string", namespaceManager);
+		//	if (countryNode != null)
+		//	{
+		//		return countryNode.InnerText;
+		//	}
+
+		//	return string.Empty;
+		//}
+
+
+
 
 		private async void GetI4DataAsync()
 		{

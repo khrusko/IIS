@@ -5,6 +5,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Xml.Linq;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 
 namespace I1
 {
@@ -15,7 +21,6 @@ namespace I1
 		{
 			var host = CreateHostBuilder(args).Build();
 
-			// Run the application
 			host.Run();
 		}
 
@@ -33,7 +38,6 @@ namespace I1
 							{
 								var file = context.Request.Form.Files.GetFile("file");
 
-								// Call the ProcessXmlFile method in CountryController
 								var countryController = new CountryController();
 								if(file == null)
 								{
@@ -42,7 +46,7 @@ namespace I1
 								}
 								countryController.ProcessXmlFileWithXSD(file);
 
-								// Return the appropriate response
+
 								context.Response.StatusCode = StatusCodes.Status200OK;
 								await context.Response.WriteAsync("XML file is valid according to the provided XSD schema.");
 							});
@@ -57,42 +61,35 @@ namespace I1
 									return;
 								}
 
-								// Call the ProcessXmlFile method in CountryController
 								var countryController = new CountryController();
 								countryController.ProcessXmlFileWithRNG(file);
 
-								// Return the appropriate response
 								context.Response.StatusCode = StatusCodes.Status200OK;
 								await context.Response.WriteAsync("XML file is valid according to the provided RNG schema.");
 							});
 
 							endpoints.MapGet("/api/Country/Temperature/{cityName}", async context =>
 							{
-								// Extract city name from the route
 								var cityName = context.Request.RouteValues["cityName"].ToString();
 
-								// Call the GetCurrentTemperature method in CountryController
 								var countryController = new CountryController();
 								var temperature = await countryController.GetCurrentTemperature(cityName);
 
-								// Return the appropriate response
 								context.Response.StatusCode = StatusCodes.Status200OK;
 								await context.Response.WriteAsync($"{temperature}");
 							});
 
-							endpoints.MapGet("/api/Country/Info/{countryName}", async context =>
-							{
-								// Extract city name from the route
-								var countryName = context.Request.RouteValues["countryName"].ToString();
+							//endpoints.MapGet("/api/Country/Info/{countryName}", async context =>
+							//{
+							//	var countryName = context.Request.RouteValues["countryName"].ToString();
 
-								// Call the GetCurrentTemperature method in CountryController
-								var countryController = new CountryController();
-								var information = await countryController.Info(countryName);
+							//	var countryController = new CountryController();
+							//	var information = await countryController.Info(countryName);
 
-								// Return the appropriate response
-								context.Response.StatusCode = StatusCodes.Status200OK;
-								await context.Response.WriteAsync($"{information}");
-							});
+							//	context.Response.StatusCode = StatusCodes.Status200OK;
+							//	await context.Response.WriteAsync($"{information}");
+							//});
+							
 						});
 					});
 				});

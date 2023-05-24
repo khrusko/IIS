@@ -180,41 +180,42 @@ namespace I1.Controllers
 			}
 		}
 
-		[HttpGet("Info/{countryName}")]
-		public async Task<string> Info(string countryName)
-		{
-			var solutionDirectoryPath = FindSolutionPath();
-			string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml");
-			string countriesSearchList = Path.Combine(solutionDirectoryPath, "countriesSearchList.xml");
+		//I3-Rest
+		//[HttpGet("Info/{countryName}")]
+		//public async Task<string> Info(string countryName)
+		//{
+		//	var solutionDirectoryPath = FindSolutionPath();
+		//	string xmlFilePath = Path.Combine(solutionDirectoryPath, "countriesXML.xml");
+		//	string countriesSearchList = Path.Combine(solutionDirectoryPath, "countriesSearchList.xml");
 
-			//Copy the original xml into the new search list, if the search list already exists it is overwritten
-			System.IO.File.Copy(xmlFilePath, countriesSearchList, true);
+		//	//Copy the original xml into the new search list, if the search list already exists it is overwritten
+		//	System.IO.File.Copy(xmlFilePath, countriesSearchList, true);
 
-			XmlDocument doc = new XmlDocument();
-			await Task.Run(() => doc.Load(countriesSearchList));
+		//	XmlDocument doc = new XmlDocument();
+		//	await Task.Run(() => doc.Load(countriesSearchList));
 
-			//Xpath usage
-			XmlNode countryNode = doc.SelectSingleNode($"/countries/country[Name='{countryName}']");
-			if (countryNode != null)
-			{
-				string name = countryNode.SelectSingleNode("Name")?.InnerText;
-				string capital = countryNode.SelectSingleNode("Capital")?.InnerText;
-				string population = countryNode.SelectSingleNode("Population")?.InnerText;
+		//	//Xpath usage
+		//	XmlNode countryNode = doc.SelectSingleNode($"/countries/country[Name='{countryName}']");
+		//	if (countryNode != null)
+		//	{
+		//		string name = countryNode.SelectSingleNode("Name")?.InnerText;
+		//		string capital = countryNode.SelectSingleNode("Capital")?.InnerText;
+		//		string population = countryNode.SelectSingleNode("Population")?.InnerText;
 
-				// handle null values
-				name = name ?? "Unknown";
-				capital = capital ?? "Unknown";
-				population = population ?? "Unknown";
+		//		// handle null values
+		//		name = name ?? "Unknown";
+		//		capital = capital ?? "Unknown";
+		//		population = population ?? "Unknown";
 
-				return $"Country: {name} \nCapital: {capital} \nPopulation: {population}";
-			}
+		//		return $"Country: {name} \nCapital: {capital} \nPopulation: {population}";
+		//	}
 
-			throw new Exception("Country not found.");
-		}
+		//	throw new Exception("Country not found.");
+		//}
+
 		public string FindSolutionPath()
 		{
-			string path = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
-			string solutionDirectoryPath = path;
+			string solutionDirectoryPath = AppDomain.CurrentDomain.BaseDirectory; // Gets the bin/debug directory path
 			for (int i = 0; i < 5; i++)
 			{
 				var directoryInfo = Directory.GetParent(solutionDirectoryPath);
